@@ -37,25 +37,41 @@ const get: grpc.handleUnaryCall<Protos.GetProductRequest, Protos.GetProductRespo
   try {
     const { id } = call.request;
 
-    const product = await db.select('*').from('products').where({ id }).first();
-    const tags = await db.select('name').from('tags').where({ product_id: product.id });
+    const result = await db.select('*').from('products').where({ id }).first();
+    const tags = await db.select('name').from('tags').where({ product_id: result.id });
 
     return callback(null, {
       product: {
-        ...product,
+        ...result,
         tags: tags.map((tag) => tag.name),
-        createdAt: new Date(product.created_at).toISOString(),
-        updatedAt: new Date(product.updated_at).toISOString(),
+        createdAt: new Date(result.created_at).toISOString(),
+        updatedAt: new Date(result.updated_at).toISOString(),
       }
     });
   } catch (error: any) {
     console.error(error);
-    callback({ code: grpc.status.INTERNAL, message: 'Server Error' });
+    return callback({ code: grpc.status.INTERNAL, message: 'Server Error' });
   }
 }
 
-const list: grpc.handleUnaryCall<Protos.ListProductsRequest, Protos.ListProductsResponse> = (call, callback) => {
-  callback({ code: grpc.status.UNIMPLEMENTED });
+const list: grpc.handleUnaryCall<Protos.ListProductsRequest, Protos.ListProductsResponse> = async (call, callback) => {
+  try {
+    const result = await db.select(
+      'products.id',
+      'products.name',
+      'products.description',
+      'products.created_at',
+      'products.updated_at'
+    )
+      .from('products')
+      .join('tags', 'products.id', '=', 'tags.product_id');
+    console.log(result);
+
+    return callback(null, { products: [] });
+  } catch (error: any) {
+    console.error(error);
+    return callback({ code: grpc.status.INTERNAL, message: 'Server Error' });
+  }
 }
 
 export default {

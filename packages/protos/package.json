@@ -1,0 +1,16 @@
+{
+  "name": "@grpc-ms/protos",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "ts-proto": "^1.151.1",
+    "typescript": "^5.1.6"
+  }
+}

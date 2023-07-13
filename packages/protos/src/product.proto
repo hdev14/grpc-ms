@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package product;
+
+message ProductData {
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  string image = 4;
+  repeated string tags = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+message CreateProductRequest {
+  string name = 1;
+  string description = 2;
+  string image = 3;
+  repeated string tags = 4;
+}
+
+message CreateProductResponse {
+  int32 productId = 1;
+}
+
+message GetProductRequest {
+  int32 id = 1;
+}
+
+message GetProductResponse {
+  ProductData product = 1;
+}
+
+message ListProductsRequest {}
+
+message ListProductsResponse {
+  repeated ProductData products = 1;
+}
+
+service Product {
+  rpc Create(CreateProductRequest) returns (CreateProductResponse);
+  rpc Get(GetProductRequest) returns (GetProductResponse);
+  rpc List(ListProductsRequest) returns (ListProductsResponse);
+}

@@ -37,13 +37,24 @@ const get: grpc.handleUnaryCall<Protos.GetProductRequest, Protos.GetProductRespo
   try {
     const { id } = call.request;
 
-    const result = await db.select('*').from('products').where({ id }).first();
-    const tags = await db.select('name').from('tags').where({ product_id: result.id });
+    const result = await db.select(
+      'products.id',
+      'products.name',
+      'products.image',
+      'products.description',
+      'products.created_at',
+      'products.updated_at',
+      db.raw(`json_group_array(tags.name) as tags`)
+    )
+      .from('products')
+      .join('tags', 'products.id', '=', 'tags.product_id')
+      .where({ 'products.id': id })
+      .first();
 
     return callback(null, {
       product: {
         ...result,
-        tags: tags.map((tag) => tag.name),
+        tags: JSON.parse(result.tags),
         createdAt: new Date(result.created_at).toISOString(),
         updatedAt: new Date(result.updated_at).toISOString(),
       }
@@ -56,18 +67,27 @@ const get: grpc.handleUnaryCall<Protos.GetProductRequest, Protos.GetProductRespo
 
 const list: grpc.handleUnaryCall<Protos.ListProductsRequest, Protos.ListProductsResponse> = async (call, callback) => {
   try {
-    const result = await db.select(
+    const results = await db.select(
       'products.id',
       'products.name',
+      'products.image',
       'products.description',
       'products.created_at',
-      'products.updated_at'
+      'products.updated_at',
+      db.raw(`json_group_array(tags.name) as tags`)
     )
       .from('products')
-      .join('tags', 'products.id', '=', 'tags.product_id');
-    console.log(result);
+      .join('tags', 'products.id', '=', 'tags.product_id')
+      .groupBy('products.id');
 
-    return callback(null, { products: [] });
+    return callback(null, {
+      products: results.map(product => ({
+        ...product,
+        tags: JSON.parse(product.tags),
+        createdAt: new Date(product.created_at).toISOString(),
+        updatedAt: new Date(product.updated_at).toISOString(),
+      }))
+    });
   } catch (error: any) {
     console.error(error);
     return callback({ code: grpc.status.INTERNAL, message: 'Server Error' });

@@ -50,7 +50,11 @@ const get: grpc.handleUnaryCall<Protos.GetProductRequest, Protos.GetProductRespo
       .join('tags', 'products.id', '=', 'tags.product_id')
       .where({ 'products.id': id })
       .first();
-
+    
+    if (!result.id) {
+      return callback({ code: grpc.status.NOT_FOUND });
+    }
+    
     return callback(null, {
       product: {
         ...result,

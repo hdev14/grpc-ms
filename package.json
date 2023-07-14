@@ -11,7 +11,8 @@
   "license": "ISC",
   "workspaces": [
     "packages/protos",
-    "services/product_service"
+    "services/product_service",
+    "services/client"
   ],
   "devDependencies": {
     "@types/node": "^20.4.0"
